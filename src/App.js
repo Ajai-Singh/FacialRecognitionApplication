@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [processingImages, setProcessingImages] = useState([]);
+
+  useEffect(() => {
+    // Simulating face recognition processing
+    const simulateFaceRecognition = async () => {
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Update processingImages to remove the processed image
+      setProcessingImages(currentProcessingImages =>
+        currentProcessingImages.filter(image => image !== selectedImage)
+      );
+    };
+
+    if (selectedImage && processingImages.includes(selectedImage)) {
+      simulateFaceRecognition();
+    }
+  }, [selectedImage, processingImages]);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -14,8 +32,15 @@ function App() {
           url: e.target.result,
           name: file.name,
         };
-        setImages([...images, imageData]);
+
+        // Add the image to processingImages
+        setProcessingImages(currentProcessingImages => [...currentProcessingImages, imageData]);
+
+        // Set the selected image
         setSelectedImage(imageData);
+
+        // Add the image to the images state
+        setImages([...images, imageData]);
       };
       reader.readAsDataURL(file);
     }
@@ -38,13 +63,15 @@ function App() {
           </button>
           <div className="thumbnails">
             {images.map((image, index) => (
-              <img
-                key={index}
-                src={image.url}
-                alt={image.name}
-                className={selectedImage === image ? 'active' : ''}
-                onClick={() => handleThumbnailClick(image)}
-              />
+              <div key={index} className="thumbnail-container">
+                <img
+                  src={image.url}
+                  alt={image.name}
+                  className={selectedImage === image ? 'active' : ''}
+                  onClick={() => handleThumbnailClick(image)}
+                />
+                {processingImages.includes(image) && <div className="processing-text">Processing...</div>}
+              </div>
             ))}
           </div>
         </div>
