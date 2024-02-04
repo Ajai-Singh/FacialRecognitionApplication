@@ -62,15 +62,15 @@ function App() {
           url: e.target.result,
           name: file.name,
         };
-
+  
         // Add the image to processingImages
         setProcessingImages((currentProcessingImages) => [...currentProcessingImages, imageData]);
-
+  
+        // Add the image to the images state
+        setImages((prevImages) => [imageData, ...prevImages]);
+  
         // Set the selected image
         setSelectedImage(imageData);
-
-        // Add the image to the images state
-        setImages([...images, imageData]);
       };
       reader.readAsDataURL(file);
     }
