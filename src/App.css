@@ -33,6 +33,7 @@
 .upload-btn-wrapper {
   position: relative;
   overflow: hidden;
+  width: 200px;
   display: inline-block;
 }
 
