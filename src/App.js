@@ -28,7 +28,6 @@ function App() {
         const numFaces = detections.length;
         setImages((prevImages) =>
           prevImages.map((image) =>
-            //if num faces length - 1 display String 'face' else display String faces 
             image === selectedImage ? { ...image, annotation: `${numFaces} ${numFaces === 1 ? 'face' : 'faces'}` } : image
           )
         );
@@ -62,13 +61,13 @@ function App() {
           url: e.target.result,
           name: file.name,
         };
-  
+
         // Add the image to processingImages
         setProcessingImages((currentProcessingImages) => [...currentProcessingImages, imageData]);
-  
+
         // Add the image to the images state
         setImages((prevImages) => [imageData, ...prevImages]);
-  
+
         // Set the selected image
         setSelectedImage(imageData);
       };
@@ -77,7 +76,38 @@ function App() {
   };
 
   const handleThumbnailClick = (image) => {
+    // Set the selected image
     setSelectedImage(image);
+
+    // Clear the main area
+    document.querySelector('.main-area').innerHTML = '';
+
+    // Load and display the full-sized image with bounding boxes
+    const imageElement = document.createElement('img');
+    imageElement.src = image.url;
+    imageElement.onload = async () => {
+      // Load face-api.js models
+      await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+      await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+      await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+      await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
+
+      // Detect faces in the selected image
+      const detections = await faceapi.detectAllFaces(imageElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+
+      // Display the full-sized image with bounding boxes around detected faces
+      const canvas = faceapi.createCanvasFromMedia(imageElement);
+      faceapi.draw.drawDetections(canvas, detections);
+      document.querySelector('.main-area').appendChild(canvas);
+
+      // Update the sidebar annotation for the selected image with the number of faces
+      const numFaces = detections.length;
+      setImages((prevImages) =>
+        prevImages.map((img) =>
+          img === image ? { ...img, annotation: `${numFaces} ${numFaces === 1 ? 'face' : 'faces'}` } : img
+        )
+      );
+    };
   };
 
   return (
